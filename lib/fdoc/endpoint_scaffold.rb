@@ -8,7 +8,7 @@ class Fdoc::EndpointScaffold < Fdoc::Endpoint
     else
       @endpoint_path = endpoint_path
       @schema = {
-        "description" => "???",
+        "description" => "",
         "responseCodes" => []
       }
       @service = service
@@ -17,7 +17,7 @@ class Fdoc::EndpointScaffold < Fdoc::Endpoint
 
   def persist!
     dirname = File.dirname(@endpoint_path)
-    Dir.mkdir(dirname) unless File.directory?(dirname)
+    FileUtils.mkdir_p(dirname) unless File.directory?(dirname)
 
     File.open(@endpoint_path, "w") do |file|
       YAML.dump(@schema, file)
@@ -45,7 +45,7 @@ class Fdoc::EndpointScaffold < Fdoc::Endpoint
       response_codes << {
         "status" => status_code,
         "successful" => successful,
-        "description" => "???"
+        "description" => ""
       }
     end
   end
@@ -54,7 +54,7 @@ class Fdoc::EndpointScaffold < Fdoc::Endpoint
 
   def scaffold_schema(schema, params, options = {:root_object => false})
     unless options[:root_object]
-      schema["description"] ||= "???"
+      schema["description"] ||= ""
     end
 
     if params.kind_of? Hash

@@ -16,13 +16,13 @@ class Fdoc::Service
       YAML.load_file(service_path)
     elsif scaffold_mode
       schema = {
-        'name'        => '???',
-        'basePath'    => '???',
-        'description' => '???'
+        'name'        => '',
+        'basePath'    => '',
+        'description' => ''
       }
 
       Dir.mkdir(service_dir) unless Dir.exist?(service_dir)
-      service_path = "#{service_dir}/???.fdoc.service"
+      service_path = "#{service_dir}/application.fdoc.service"
       File.open(service_path, "w") { |file| YAML.dump(schema, file) }
 
       schema

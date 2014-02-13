@@ -4,7 +4,7 @@ describe Fdoc::EndpointScaffold do
   subject { described_class.new('spec/fixtures/network-GET.fdoc') }
   let(:action_parameters) { {
     "scaffold" => true,
-    "description" => "???",
+    "description" => "",
     "responseCodes" => []
   } }
 
@@ -170,7 +170,7 @@ describe Fdoc::EndpointScaffold do
         subject.should have(1).response_codes
 
         subject.response_codes.each do |response|
-          response["description"].should == "???"
+          response["description"].should == ""
         end
       end
 
@@ -181,10 +181,10 @@ describe Fdoc::EndpointScaffold do
         subject.response_parameters["required"].should == []
 
         subject.response_parameters["properties"]["nodes"]["type"].should == "array"
-        subject.response_parameters["properties"]["nodes"]["description"].should == "???"
+        subject.response_parameters["properties"]["nodes"]["description"].should == ""
 
         subject.response_parameters["properties"]["root_node"]["type"].should == "object"
-        subject.response_parameters["properties"]["root_node"]["description"].should == "???"
+        subject.response_parameters["properties"]["root_node"]["description"].should == ""
 
         subject.response_parameters["properties"]["version"]["type"].should == "integer"
         subject.response_parameters["properties"]["std_dev"]["type"].should == "number"

@@ -187,8 +187,7 @@ diff --git a/docs/fdoc/members/list-GET.fdoc b/docs/fdoc/members/list-GET.fdoc b
 --- a/docs/fdoc/members/list-GET.fdoc
 +++ b/docs/fdoc/members/list-GET.fdoc
 +    offset:
-+      description: ???
-+      required: ???
++      description:
 +      type: integer
 +      example: 5
 ```
