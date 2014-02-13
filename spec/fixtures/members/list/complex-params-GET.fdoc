@@ -1,87 +1,75 @@
 requestParameters:
   type: object
+  required: [ "toplevel_param", "required_nested_array", "required_nested_object" ]
   properties:
     toplevel_param:
       type: string
       description: A paramater as normal
-      required: yes
     optional_nested_array:
       type: array
-      required: no
       items:
         type: object
+        required: [ "required_param", "optional_param" ]
         properties:
           required_param:
-            required: yes
             description: It's required
             type: string
           optional_param:
-            required: yes
             description: It's optional
             type: string
     required_nested_array:
       type: array
-      required: yes
       items:
         type: object
+        required: [ "required_param" ]
         properties:
           required_param:
-            required: yes
             description: It's required
             type: string
           optional_param:
-            required: no
             description: It's optional
             type: string
           optional_second_nested_object:
-            required: no
             type: object
             description: It's a bug
+            required: [ "required_param" ]
             properties:
               required_param:
-                required: yes
                 description: It's required
                 type: string
               optional_param:
-                required: no
                 description: It's optional
                 type: string
 
     optional_nested_object:
       type: object
-      required: no
+      required: [ "required_param" ]
       properties:
         required_param:
-          required: yes
           description: It's required
           type: string
         optional_param:
-          required: no
           description: It's optional
           type: string
     required_nested_object:
       type: object
-      required: yes
+      required: [ "required_param" ]
       properties:
         required_param:
-          required: yes
           description: It's required
           type: string
         optional_param:
-          required: no
           description: It's optional
           type: string
         optional_second_nested_object:
-          required: no
           type: object
           description: It's a bug
+          required: [ "required_param" ]
           properties:
             required_param:
-              required: yes
               description: It's required
               type: string
             optional_param:
-              required: no
               description: It's optional
               type: string
 

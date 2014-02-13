@@ -55,7 +55,6 @@ class Fdoc::EndpointScaffold < Fdoc::Endpoint
   def scaffold_schema(schema, params, options = {:root_object => false})
     unless options[:root_object]
       schema["description"] ||= "???"
-      schema["required"] = "???" unless schema.has_key?("required")
     end
 
     if params.kind_of? Hash
@@ -70,6 +69,7 @@ class Fdoc::EndpointScaffold < Fdoc::Endpoint
   def scaffold_hash(schema, params, options = {})
     schema["type"] ||= "object" unless options[:root_object]
     schema["properties"] ||= {}
+    schema["required"] ||= []
 
     params.each do |key, value|
       unless schema[key]

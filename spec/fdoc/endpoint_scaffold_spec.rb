@@ -178,14 +178,13 @@ describe Fdoc::EndpointScaffold do
         subject.consume_response(response_params, "200 OK")
         subject.response_parameters["type"].should == nil
         subject.response_parameters["properties"].keys.should =~ ["nodes", "root_node", "std_dev", "version", "updated_at"]
+        subject.response_parameters["required"].should == []
 
         subject.response_parameters["properties"]["nodes"]["type"].should == "array"
         subject.response_parameters["properties"]["nodes"]["description"].should == "???"
-        subject.response_parameters["properties"]["nodes"]["required"].should == "???"
 
         subject.response_parameters["properties"]["root_node"]["type"].should == "object"
         subject.response_parameters["properties"]["root_node"]["description"].should == "???"
-        subject.response_parameters["properties"]["root_node"]["required"].should == "???"
 
         subject.response_parameters["properties"]["version"]["type"].should == "integer"
         subject.response_parameters["properties"]["std_dev"]["type"].should == "number"
