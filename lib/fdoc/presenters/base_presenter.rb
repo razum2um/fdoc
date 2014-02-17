@@ -8,6 +8,7 @@ require 'forwardable'
 # for URLs and common text styling tasks (like #render_markdown
 # and #render_json)
 class Fdoc::BasePresenter
+
   attr_reader :options
 
   def initialize(options = {})
@@ -36,6 +37,10 @@ class Fdoc::BasePresenter
     options[:url_base_path] || options[:html_directory] || ""
   end
 
+  def url_base_path
+    options[:url_base_path] || '/'
+  end
+
   def css_path
     File.join(html_directory, "styles.css")
   end
@@ -60,6 +65,10 @@ class Fdoc::BasePresenter
     EOS
   end
 
+  def render(*args)
+    rendering_controller.render_to_string(*args)
+  end
+
   protected
 
   def path_for_template(filename)
@@ -69,5 +78,14 @@ class Fdoc::BasePresenter
       template_path = File.join(File.dirname(__FILE__), "../templates", filename)
     end
     template_path
+  end
+
+  def rendering_controller
+    return @rendering_controller if @rendering_controller
+    @rendering_controller = Fdoc::RenderingController.new
+    instance_variables.each do |var|
+      @rendering_controller.instance_variable_set(var, instance_variable_get(var))
+    end
+    @rendering_controller
   end
 end

@@ -31,6 +31,16 @@ Gem::Specification.new do |s|
   s.add_dependency("json-schema", "~> 2.2")
   s.add_dependency("kramdown")
   s.add_dependency("thor")
+  s.add_dependency("hashie")
+  #s.add_dependency("actionpack")
+  #s.add_dependency("actionview")
+
+  # build template
+  s.add_development_dependency("sprockets")
+  s.add_development_dependency("sass")
+  s.add_development_dependency("bootstrap-sass", "~> 2.3")
+  s.add_development_dependency("jquery-rails")
+  s.add_development_dependency("remotipart")
 
   s.add_development_dependency("rake")
   s.add_development_dependency("rspec")

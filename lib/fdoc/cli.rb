@@ -45,7 +45,7 @@ module Fdoc
     no_tasks do
       def convert_to_html
         in_root do
-          copy_file("styles.css")
+          FileUtils.cp_r("#{self.class.source_root}/public", destination)
           create_file("index.html", meta_presenter.to_html) if has_meta_service?
         end
 

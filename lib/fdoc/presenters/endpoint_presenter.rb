@@ -9,7 +9,14 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
   end
 
   def to_html
-    render_erb('endpoint.html.erb')
+    @service_presenter = service_presenter
+    @endpoint_presenter = self
+    @params = [{
+      url_params: {},
+      post_params: example_request.json,
+    }]
+    #binding.pry
+    render('routes/show')
   end
 
   def to_markdown
@@ -30,7 +37,8 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
 
   def zws_ify(str)
     # zero-width-space, makes long lines friendlier for breaking
-    str.gsub(/\//, '&#8203;/') if str
+    #str.gsub(/\//, '&#8203;/') if str
+    str
   end
 
   def description
@@ -87,6 +95,10 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
 
   def path
     zws_ify(@endpoint.path)
+  end
+
+  def verb
+    @endpoint.verb
   end
 
   ATOMIC_TYPES = %w(string integer number boolean null)

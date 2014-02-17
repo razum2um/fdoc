@@ -12,8 +12,13 @@ class Fdoc::ServicePresenter < Fdoc::BasePresenter
     @service = service
   end
 
+  # TODO move to controller
   def to_html
-    render_erb('service.html.erb')
+    @has_obsolete_definitions = false
+    @has_missing_definitions = false
+    @routes = endpoints_by_prefix
+    @service_presenter = self
+    render('routes/index')
   end
 
   def to_markdown
@@ -53,6 +58,17 @@ class Fdoc::ServicePresenter < Fdoc::BasePresenter
     end
 
     @endpoints
+  end
+
+  def endpoints_by_prefix
+    return @endpoints_by_prefix if @endpoints_by_prefix
+    @endpoints_by_prefix = Hash.new { |h,k| h[k] = Array.new }
+    service.endpoints.sort_by(&:endpoint_path).each do |endpoint|
+      presenter = Fdoc::EndpointPresenter.new(endpoint, options)
+      presenter.service_presenter = self
+      @endpoints_by_prefix[presenter.prefix] << presenter
+    end
+    @endpoints_by_prefix
   end
 
   def description(options = {:render => true})
