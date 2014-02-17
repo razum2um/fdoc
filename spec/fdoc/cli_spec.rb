@@ -22,7 +22,7 @@ describe Fdoc::Cli do
   end
 
   describe "#convert" do
-    let(:styles_css_path) { File.expand_path("styles.css", html_path) }
+    let(:styles_css_path) { File.expand_path("public/application.css", html_path) }
 
     context "when the fdoc path does not exist" do
       before { FileUtils.rmdir(fdoc_path) }

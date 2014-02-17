@@ -6,6 +6,7 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
     super(options)
     @endpoint = endpoint
     @endpoint_presenter = self
+    @service_presenter = Fdoc::ServicePresenter.new(endpoint.service)
   end
 
   def to_html
@@ -15,7 +16,6 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
       url_params: {},
       post_params: example_request.json,
     }]
-    #binding.pry
     render('routes/show')
   end
 
