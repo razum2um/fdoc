@@ -4,6 +4,7 @@ require 'yaml'
 class Fdoc::Service
   attr_reader :service_dir, :schema
   attr_accessor :meta_service, :opened_endpoints
+  SUFFIX = '.fdoc.service'
 
   def self.default_service
     new(Fdoc.service_path)
@@ -29,7 +30,7 @@ class Fdoc::Service
   end
 
   def service_path
-    @service_path ||= "#{service_dir}/#{name}.fdoc.service"
+    @service_path ||= "#{service_dir}/#{name}#{SUFFIX}"
   end
 
   def persist!
@@ -96,7 +97,9 @@ class Fdoc::Service
   end
 
   def name
-    @name ||= (@schema.try(:[], 'name') || Dir["#{service_dir}/*.fdoc.service"].first || 'application')
+    @name ||= (@schema.try(:[], 'name') ||
+               Pathname.new(Dir["#{service_dir}/*#{SUFFIX}"].first.to_s).basename.to_s.gsub(SUFFIX, '').presence ||
+               'application')
   end
 
   def base_path
