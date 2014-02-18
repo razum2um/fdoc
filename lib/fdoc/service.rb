@@ -3,32 +3,40 @@ require 'yaml'
 # Services represent a group of Fdoc API endpoints in a directory
 class Fdoc::Service
   attr_reader :service_dir
-  attr_accessor :meta_service
+  attr_accessor :meta_service, :opened_endpoints
 
   def self.default_service
     new(Fdoc.service_path)
   end
 
-  def initialize(service_dir, scaffold_mode = Fdoc.scaffold_mode?)
+  def initialize(service_dir)
+    @opened_endpoints = []
     @service_dir = File.expand_path(service_dir)
-    service_path = Dir["#{@service_dir}/*.fdoc.service"].first
-    @schema = if service_path
-      YAML.load_file(service_path)
-    elsif scaffold_mode
-      schema = {
+    @schema = if !scaffold? && (schema = YAML.load_file(service_path)).is_a?(Hash)
+      schema
+    else
+      {
         'name'        => '',
         'basePath'    => '',
         'description' => ''
       }
-
-      Dir.mkdir(service_dir) unless Dir.exist?(service_dir)
-      service_path = "#{service_dir}/application.fdoc.service"
-      File.open(service_path, "w") { |file| YAML.dump(schema, file) }
-
-      schema
-    else
-      {}
     end
+  end
+
+  def scaffold?
+    File.exist?(service_path)
+  end
+
+  def service_path
+    @service_path ||= begin
+      Dir["#{service_dir}/*.fdoc.service"].first || "#{service_dir}/application.fdoc.service"
+    end
+  end
+
+  def persist!
+    FileUtils.mkdir_p(service_dir) unless Dir.exist?(service_dir)
+    File.open(service_path, "w") { |file| YAML.dump(schema, file) } unless File.exists?(service_path)
+    @opened_endpoints.each { |e| e.persist! if e.respond_to? :persist! }
   end
 
   def self.verify!(verb, path, request_params, response_params,
@@ -37,8 +45,18 @@ class Fdoc::Service
     endpoint = service.open(verb, path)
     endpoint.consume_request(request_params, successful)
     endpoint.consume_response(response_params, response_status, successful)
-    endpoint.persist! if endpoint.respond_to?(:persist!)
+    service.persist!
+    service
   end
+
+  # copied from check_response
+  def verify!(verb, path, request_params, response_params,
+                   response_status, successful)
+    endpoint = open(verb, path)
+    endpoint.consume_request(request_params, successful)
+    endpoint.consume_response(response_params, response_status, successful)
+  end
+
 
   # Returns an Endpoint described by (verb, path)
   # In scaffold_mode, it will return an EndpointScaffold an of existing file
@@ -46,11 +64,13 @@ class Fdoc::Service
   def open(verb, path, scaffold_mode = Fdoc.scaffold_mode?)
     endpoint_path = path_for(verb, path)
 
-    if scaffold_mode
-      Fdoc::EndpointScaffold.new(endpoint_path, self)
-    else
+    endpoint = if File.exists?(endpoint_path)
       Fdoc::Endpoint.new(endpoint_path, self)
+    else
+      Fdoc::EndpointScaffold.new(endpoint_path, self)
     end
+    @opened_endpoints << endpoint
+    endpoint
   end
 
   def endpoint_paths
