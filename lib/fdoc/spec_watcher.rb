@@ -8,7 +8,12 @@ module Fdoc
       # _describe = self # RSpec::ExampleGroups::... # class
       around do |example|
         # _it = self # RSpec::ExampleGroups::... # instance
-        fdoc_service = Fdoc::Service.default_service
+        fdoc_service = if defined?(Rails) && File.exists?(service_path = Rails.root.join('fdoc').to_s)
+          Fdoc::Service.new(service_path)
+        else
+          Fdoc::Service.default_service
+        end
+
         [:get, :post, :put, :patch, :delete].each do |verb|
           self.class.send(:define_method, "#{verb}_with_fdoc") do |*params|
             action, request_params = params
@@ -84,5 +89,11 @@ module Fdoc
       end
     end
 
+  end
+end
+
+if defined?(RSpec)
+  RSpec.configure do |config|
+    config.include Fdoc::SpecWatcher, type: :controller
   end
 end
