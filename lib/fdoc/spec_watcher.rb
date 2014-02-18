@@ -1,4 +1,5 @@
 require 'json'
+require 'fdoc'
 
 module Fdoc
   module SpecWatcher
@@ -6,29 +7,38 @@ module Fdoc
 
     included do
       # _describe = self # RSpec::ExampleGroups::... # class
+      [:get, :post, :put, :patch, :delete].each do |verb|
+        send(:define_method, "#{verb}_with_fdoc") do |*params|
+          action, request_params = params
+
+          send("#{verb}_without_fdoc", *params)
+
+          endpoint_path = path(@example)
+          if endpoint_path == true && inside_rails_controller_spec?
+            action, _params = params
+            endpoint_path, _ = Rails.application.routes.generate_extras({
+              controller: described_class.to_s.gsub(/Controller$/, '').tableize,
+              action: action
+            }.merge(_params))
+          end
+          check_response(@fdoc_service, verb, request_params, endpoint_path) if endpoint_path
+        end
+
+        send :alias_method_chain, verb, :fdoc
+      end
+
       around do |example|
         # _it = self # RSpec::ExampleGroups::... # instance
-        fdoc_service = if defined?(Rails) && File.exists?(service_path = Rails.root.join('fdoc').to_s)
-          Fdoc::Service.new(service_path)
+        @example = example
+        @fdoc_service = if defined?(Rails)
+          Fdoc::Service.new(Rails.root.join(Fdoc::DEFAULT_SERVICE_PATH).to_s, Rails.application.class.parent_name)
         else
           Fdoc::Service.default_service
         end
 
-        [:get, :post, :put, :patch, :delete].each do |verb|
-          self.class.send(:define_method, "#{verb}_with_fdoc") do |*params|
-            action, request_params = params
-
-            send("#{verb}_without_fdoc", *params)
-
-            check_response(fdoc_service, verb, request_params, example)
-          end
-
-          self.class.send :alias_method_chain, verb, :fdoc
-        end
-
         example.run.tap do |result|
           if result == true
-            fdoc_service.persist! #rescue nil
+            @fdoc_service.persist! #rescue nil
           end
         end
       end
@@ -36,9 +46,9 @@ module Fdoc
 
     private
 
-    def check_response(service, verb, request_params, example=nil)
+    def check_response(service, verb, request_params, endpoint_path)
       successful = Fdoc.decide_success(response_params, real_response.status)
-      service.verify!(verb, path(example), parsed_request_params(request_params), response_params,
+      service.verify!(verb, endpoint_path, parsed_request_params(request_params), response_params,
                       real_response.status, successful)
     end
 
@@ -54,9 +64,9 @@ module Fdoc
       end
     end
 
-    def path(example=nil)
-      if example && example.respond_to?(:metadata)
-        example.metadata[:fdoc]
+    def path(_example=nil)
+      if _example && _example.respond_to?(:metadata)
+        _example.metadata[:fdoc]
       elsif defined?(::RSpec) && ::RSpec.respond_to?(:current_example) # Rspec 3
         ::RSpec.current_example.metadata[:fdoc]
       elsif respond_to?(:example) # Rspec 2
@@ -69,6 +79,10 @@ module Fdoc
         opts.merge!(options)
         opts[:fdoc]
       end
+    end
+
+    def inside_rails_controller_spec?
+      defined?(ActionController::Base) && described_class.is_a?(Class) && described_class.ancestors.include?(ActionController::Base)
     end
 
     def real_response

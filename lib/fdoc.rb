@@ -1,7 +1,7 @@
 $:.unshift(File.dirname(__FILE__))
 
 module Fdoc
-  DEFAULT_SERVICE_PATH = "docs/fdoc"
+  DEFAULT_SERVICE_PATH = "fdoc"
 
   def self.scaffold_mode?
     ENV['FDOC_SCAFFOLD']
@@ -34,7 +34,6 @@ module Fdoc
   class UndocumentedResponseCode < ValidationError; end
 end
 
-require 'fdoc/server'
 require 'fdoc/service'
 require 'fdoc/meta_service'
 require 'fdoc/endpoint'

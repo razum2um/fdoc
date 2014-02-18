@@ -2,35 +2,34 @@ require 'yaml'
 
 # Services represent a group of Fdoc API endpoints in a directory
 class Fdoc::Service
-  attr_reader :service_dir
+  attr_reader :service_dir, :schema
   attr_accessor :meta_service, :opened_endpoints
 
   def self.default_service
     new(Fdoc.service_path)
   end
 
-  def initialize(service_dir)
+  def initialize(service_dir, service_name = nil)
+    @name = service_name
     @opened_endpoints = []
     @service_dir = File.expand_path(service_dir)
-    @schema = if !scaffold? && (schema = YAML.load_file(service_path)).is_a?(Hash)
+    @schema = if persisted? && (schema = YAML.load_file(service_path)).is_a?(Hash)
       schema
     else
       {
-        'name'        => '',
+        'name'        => name,
         'basePath'    => '',
         'description' => ''
       }
     end
   end
 
-  def scaffold?
+  def persisted?
     File.exist?(service_path)
   end
 
   def service_path
-    @service_path ||= begin
-      Dir["#{service_dir}/*.fdoc.service"].first || "#{service_dir}/application.fdoc.service"
-    end
+    @service_path ||= "#{service_dir}/#{name}.fdoc.service"
   end
 
   def persist!
@@ -97,7 +96,7 @@ class Fdoc::Service
   end
 
   def name
-    @schema['name']
+    @name ||= (@schema.try(:[], 'name') || Dir["#{service_dir}/*.fdoc.service"].first || 'application')
   end
 
   def base_path

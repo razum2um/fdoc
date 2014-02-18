@@ -21,7 +21,7 @@
           <li class="nav-header"><%= prefix %></li>
           <% endpoints.each do |endpoint| %>
             <li>
-              <a href="<%= endpoint.url %>">
+              <a href="<%= @service_presenter.html_directory %>/<%= endpoint.url %>">
                 <div class="label-api label-api-full">
                   <span class="label label-important"><%= endpoint.verb %></span>
                 </div>
