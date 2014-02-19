@@ -88,6 +88,6 @@ The interface there shows json-schema converted in a friendly way and
 lets you try api endpoints `live`
 
 [json_schema]: http://json-schema.org/
-[request_img]: https://github.com/square/fdoc/raw/master/docs/request.png
-[response_img]: https://github.com/square/fdoc/raw/master/docs/response.png
-[tryrequest_img]: https://github.com/square/fdoc/raw/master/docs/tryrequest_img.png
+[request_img]: https://github.com/razum2um/fdoc/raw/master/docs/request.png
+[response_img]: https://github.com/razum2um/fdoc/raw/master/docs/response.png
+[tryrequest_img]: https://github.com/razum2um/fdoc/raw/master/docs/tryrequest_img.png
