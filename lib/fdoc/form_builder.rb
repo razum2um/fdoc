@@ -41,7 +41,7 @@ module Fdoc
 
     def add_element_to_buffer(parent_labels, label, value)
       @_buffer += render(
-        :partial => 'routes/param_form_element',
+        :partial => 'param_form_element',
         :locals  => {
           :label      => "#{print_labels(parent_labels)}#{label}",
           :label_text => label,
@@ -52,7 +52,7 @@ module Fdoc
 
     def add_legend_to_buffer(parent_labels, label)
       @_buffer += render(
-        :partial => 'routes/param_form_legend',
+        :partial => 'param_form_legend',
         :locals  => { :label => print_labels(parent_labels.clone << label) }
       )
     end

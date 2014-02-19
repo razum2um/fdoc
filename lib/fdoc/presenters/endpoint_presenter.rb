@@ -16,7 +16,7 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
       url_params: {},
       post_params: example_request.json,
     }]
-    render('routes/show')
+    render('show')
   end
 
   def to_markdown
@@ -45,14 +45,6 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
     render_markdown(endpoint.description)
   end
 
-  def show_request?
-    !endpoint.request_parameters.empty?
-  end
-
-  def show_response?
-    !endpoint.response_parameters.empty?
-  end
-
   def request_parameters
     Fdoc::SchemaPresenter.new(endpoint.request_parameters,
       options.merge(:request => true)
@@ -60,6 +52,7 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
   end
 
   def response_parameters
+    return if endpoint.response_parameters.empty?
     Fdoc::SchemaPresenter.new(endpoint.response_parameters, options)
   end
 
@@ -70,18 +63,20 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
   end
 
   def successful_response_codes
-    response_codes.select { |response_code| response_code.successful? }
+    response_codes.select(&:successful?)
   end
 
   def failure_response_codes
-    response_codes.select { |response_code| !response_code.successful? }
+    response_codes.reject(&:successful?)
   end
 
   def example_request
+    return if endpoint.request_parameters.empty?
     Fdoc::JsonPresenter.new(example_from_schema(endpoint.request_parameters))
   end
 
   def example_response
+    return if endpoint.response_parameters.empty?
     Fdoc::JsonPresenter.new(example_from_schema(endpoint.response_parameters))
   end
 

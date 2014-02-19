@@ -16,7 +16,7 @@
   <% end %>
 
   <% @params.each do |param| %>
-    <%= form_tag @endpoint_presenter.path, :method => @endpoint_presenter.verb, :class => 'well form-horizontal', :remote => true do %>
+    <%= form_tag "/#{@endpoint_presenter.path}", :method => @endpoint_presenter.verb, :class => 'well form-horizontal', :remote => true do %>
 
       <% if param[:url_params].empty? && param[:post_params].empty? %>
         <div class="alert alert-info">
@@ -25,14 +25,20 @@
       <% else %>
         <ul class="nav nav-tabs">
           <li class="nav-label">Request</li>
+
+          <li class="active"><a href="#" id="info">INFO</a></li>
           <% if param[:url_params].present? %>
             <li<% unless param[:post_params].present? %> class="active"<% end %>><a href="#" id="url-params">URL</a></li>
           <% end %>
           <% if param[:post_params].present? %>
-            <li class="active"><a href="#" id="post-params">POST</a></li>
+            <li><a href="#" id="post-params">POST</a></li>
           <% end %>
         </ul>
       <% end %>
+
+      <fieldset ref="info">
+        <%= render 'endpoint' %>
+      </fieldset>
 
       <% if param[:url_params].present? %>
         <fieldset ref="url-params">

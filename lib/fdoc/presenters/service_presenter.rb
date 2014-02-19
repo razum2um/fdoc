@@ -18,7 +18,7 @@ class Fdoc::ServicePresenter < Fdoc::BasePresenter
     @has_missing_definitions = false
     @routes = endpoints_by_prefix
     @service_presenter = self
-    render('routes/index')
+    render('index')
   end
 
   def to_markdown
