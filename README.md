@@ -90,4 +90,4 @@ lets you try api endpoints `live`
 [json_schema]: http://json-schema.org/
 [request_img]: https://github.com/razum2um/fdoc/raw/master/docs/request.png
 [response_img]: https://github.com/razum2um/fdoc/raw/master/docs/response.png
-[tryrequest_img]: https://github.com/razum2um/fdoc/raw/master/docs/tryrequest_img.png
+[tryrequest_img]: https://github.com/razum2um/fdoc/raw/master/docs/tryrequest.png
