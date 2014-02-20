@@ -5,6 +5,5 @@ $:<< File.expand_path("../lib", File.dirname(__FILE__))
 require "rubygems"
 require "fdoc"
 require "fdoc/cli"
-require 'pry-byebug'
 
 Fdoc::Cli.start
