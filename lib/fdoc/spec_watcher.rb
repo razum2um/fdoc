@@ -15,6 +15,8 @@ module Fdoc
 
           endpoint_path = explicit_path(@__example)
 
+          return if endpoint_path.nil? # not fdoc
+
           if endpoint_path == true && inside_rails_controller_spec?
             endpoint_path = path_regexp
           end
