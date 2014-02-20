@@ -15,13 +15,13 @@ class Fdoc::Service
     @opened_endpoints = []
     @service_dir = File.expand_path(service_dir)
     @schema = if persisted? && (schema = YAML.load_file(service_path)).is_a?(Hash)
-      schema
+      Fdoc::Schema.new(schema)
     else
-      {
+      Fdoc::Schema.new({
         'name'        => name,
         'basePath'    => '',
         'description' => ''
-      }
+      })
     end
   end
 
@@ -53,8 +53,7 @@ class Fdoc::Service
   def verify!(verb, path, request_params, response_params,
                    response_status, successful)
     endpoint = open(verb, path)
-    endpoint.consume_request(request_params, successful)
-    endpoint.consume_response(response_params, response_status, successful)
+    endpoint.consume!(request_params, response_params, response_status, successful)
   end
 
 

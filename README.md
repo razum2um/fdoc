@@ -46,19 +46,38 @@ After successful spec passing there will be some files under Rails.root/fdoc dir
 please, commit them as they appear. They include description of request-response pair using
 [JSON schema][json_schema] format (draft v4). Feel free to edit `required` and `description` fields!
 
-By default all fields are marked as non-required (in request, as well as in response), lets change it
-
-    diff --git c/fdoc/api/v1/users-POST.fdoc i/fdoc/api/v1/users-POST.fdoc
-    -      required: []
-    +      required: ['email']
+By default all fields are marked as non-required (in request, as well as in response),
+lets add "social_network" in request parameters and fill in "last_sign_in_at" in response:
 
 Now, it validates your request and ensures the api! If response changes:
 
-    All examples were filtered out; ignoring {:focus=>true}
-      1) Api::V1::UsersController registers user
-         Failure/Error: post :create, user: {
-         JSON::Schema::ValidationError:
-           The property '#/user' did not contain a required property of 'email' in schema d95e840e-f749-5fe2-82f2-9b567224b3c0#
+    1) Api::V1::UsersController registers user
+     Failure/Error: post :create, {
+     Fdoc::ValidationError:
+       Request
+       - The property '#/' contains additional properties ["social_network"] outside of the schema when none are allowed in schema c0ec70af-3d75-5a46-8206-a73a2b6250b3#
+       Response
+       - The property '#/user/last_sign_in_at' of type String did not match the following type: null in schema 83b0e4ef-4f9e-567e-ab37-8941366c0126#
+       Diff
+              required: []
+       +    social_network:
+       +      type: object
+       +      properties:
+       +        provider:
+       +          type: string
+       +        uid:
+       +          type: string
+       +      required: []
+          required: []
+                last_sign_in_at:
+       -          type: 'null'
+       -      required:
+       -      - email
+       +          type: string
+       +      required: []
+          required: []
+     # ./spec/controllers/api/v1/users_controller_spec.rb:8:in `block (3 levels) in <top (required)>'
+     # ./spec/controllers/api/v1/users_controller_spec.rb:7:in `block (2 levels) in <top (required)>'
 
 ## Now it lets people use your schema to try your `live` api (e.g. on your staging server)
 

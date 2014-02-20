@@ -7,10 +7,10 @@ class Fdoc::EndpointScaffold < Fdoc::Endpoint
       super
     else
       @endpoint_path = endpoint_path
-      @schema = {
+      @schema = Fdoc::Schema.new({
         "description" => "",
         "responseCodes" => []
-      }
+      })
       @service = service
     end
   end

@@ -34,8 +34,10 @@ module Fdoc
   class UndocumentedResponseCode < ValidationError; end
 end
 
+require 'fdoc/schema'
 require 'fdoc/service'
 require 'fdoc/meta_service'
+require 'fdoc/validation_error'
 require 'fdoc/endpoint'
 require 'fdoc/endpoint_scaffold'
 require 'fdoc/rendering_controller'

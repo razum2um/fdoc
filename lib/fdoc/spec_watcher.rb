@@ -37,7 +37,7 @@ module Fdoc
         end
 
         example.run.tap do |result|
-          if result == true
+          unless result.is_a? Exception
             @fdoc_service.persist! #rescue nil
           end
         end

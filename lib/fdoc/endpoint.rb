@@ -4,19 +4,29 @@ require 'json-schema'
 # Endpoints represent the schema for an API endpoint
 # The #consume_* methods will raise exceptions if input differs from the schema
 class Fdoc::Endpoint
-  attr_reader :service
-  attr_reader :endpoint_path
+
+  attr_reader :schema, :service, :endpoint_path, :current_scaffold
+  attr_accessor :errors
 
   def initialize(endpoint_path, service=Fdoc::Service.default_service)
     @endpoint_path = endpoint_path
-    @schema = YAML.load_file(@endpoint_path)
+    @schema = Fdoc::Schema.new(YAML.load_file(@endpoint_path))
     @service = service
+    @errors = []
+    @current_scaffold = Fdoc::EndpointScaffold.new("#{endpoint_path}.new", service)
+  end
+
+  def consume!(request_params, response_params, status_code, successful=true)
+    consume_request(request_params, successful)
+    consume_response(response_params, status_code, successful)
+    raise_errors!
   end
 
   def consume_request(params, successful=true)
     if successful
-      schema = set_additional_properties_false_on(request_parameters.dup)
-      JSON::Validator.validate!(schema, stringify_keys(params))
+      unless validate(request_parameters, params, 'Request')
+        current_scaffold.consume_request(params, successful)
+      end
     end
   end
 
@@ -35,8 +45,9 @@ class Fdoc::Endpoint
           status_code, successful
         ]
     elsif successful
-      schema = set_additional_properties_false_on(response_parameters.dup)
-      JSON::Validator.validate!(schema, stringify_keys(params))
+      unless validate(response_parameters, params, 'Response')
+        current_scaffold.consume_response(params, status_code, successful)
+      end
     else
       true
     end
@@ -75,6 +86,25 @@ class Fdoc::Endpoint
   end
 
   protected
+
+  def validate(expected_params, given_params, prefix=nil)
+    schema = set_additional_properties_false_on(expected_params.dup)
+    unless (_errors = JSON::Validator.fully_validate(schema, stringify_keys(given_params))).empty?
+      self.errors << prefix
+      _errors.each { |e| self.errors << "- #{e}" }
+      return false
+    end
+    true
+  end
+
+  def raise_errors!
+    unless errors.empty?
+      raise Fdoc::ValidationError.new((
+        errors +
+        ['Diff', current_scaffold.schema.diff(schema)]
+      ).join("\n"))
+    end
+  end
 
   # default additionalProperties on objects to false
   # create a copy, so we don't mutate the input
