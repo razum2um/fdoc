@@ -12,6 +12,7 @@ class Fdoc::EndpointScaffold < Fdoc::Endpoint
         "responseCodes" => []
       })
       @service = service
+      @errors = []
     end
   end
 
