@@ -66,8 +66,11 @@ Add to `config/routes.rb`
 
     mount Fdoc::Server, at: '/fdoc'
 
-Run after deploy
+Add to the `Capfile`
 
+    require 'fdoc/capistrano'
+
+    # or run after deploy
     bundle exec fdoc convert fdoc --output=public/fdoc -u "/fdoc"
 
 Navigate to `http://your.staging.com/fdoс`
