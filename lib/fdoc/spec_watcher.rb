@@ -13,15 +13,29 @@ module Fdoc
 
           send("#{verb}_without_fdoc", *params)
 
-          endpoint_path = path(@example)
+          endpoint_path = explicit_path(@__example)
+
           if endpoint_path == true && inside_rails_controller_spec?
-            action, _params = params
-            endpoint_path, _ = Rails.application.routes.generate_extras({
-              controller: described_class.to_s.gsub(/Controller$/, '').tableize,
-              action: action
-            }.merge(_params))
+            endpoint_path = path_regexp
           end
-          check_response(@fdoc_service, verb, request_params, endpoint_path) if endpoint_path
+
+          if endpoint_path.blank?
+            raise Fdoc::ValidationError.new(<<-MSG.gsub(/^ {14}/, '')
+              cannot determine path for .fdoc, please, do it explicitly:
+                it "tests", fdoc: 'relative/path' do
+                  ...
+                end
+              MSG
+            )
+          end
+
+          if successful = Fdoc.decide_success(response_params, real_response.status)
+            @__fdoc_service.verify!(
+              verb, endpoint_path, path_params.merge(extensions),
+              parsed_request_params(request_params), response_params,
+              real_response.status, successful
+            )
+          end
         end
 
         send :alias_method_chain, verb, :fdoc
@@ -29,8 +43,8 @@ module Fdoc
 
       around do |example|
         # _it = self # RSpec::ExampleGroups::... # instance
-        @example = example
-        @fdoc_service = if defined?(Rails)
+        @__example = example
+        @__fdoc_service = if defined?(Rails)
           Fdoc::Service.new(Rails.root.join(Fdoc::DEFAULT_SERVICE_PATH).to_s, Rails.application.class.parent_name)
         else
           Fdoc::Service.default_service
@@ -38,7 +52,7 @@ module Fdoc
 
         example.run.tap do |result|
           unless result.is_a? Exception
-            @fdoc_service.persist! #rescue nil
+            @__fdoc_service.persist! #rescue nil
           end
         end
       end
@@ -46,10 +60,33 @@ module Fdoc
 
     private
 
-    def check_response(service, verb, request_params, endpoint_path)
-      successful = Fdoc.decide_success(response_params, real_response.status)
-      service.verify!(verb, endpoint_path, parsed_request_params(request_params), response_params,
-                      real_response.status, successful)
+    def extensions
+      {
+        path_info: request.env['PATH_INFO'],
+        method: request.env['REQUEST_METHOD']
+      }
+    end
+
+    def path_regexp
+      @__path_regexp ||= current_route_params.first.try(:path).try(:spec).to_s.sub('(.:format)', '')
+    end
+
+    def path_params
+      @__path_params ||= current_route_params.last || {}
+    end
+
+    # ActionDispatch::Journey::Route || nil
+    def current_route_params
+      return [@__current_route, @__path_params] if @__current_route && @__path_params
+      router.recognize(request) do |route, _, parameters|
+        return [@__current_route = route, @__path_params = parameters]
+      end
+      [] # never?
+    end
+
+    # ActionDispatch::Journey::Router
+    def router
+      Rails.application.routes.router
     end
 
     def parsed_request_params request_params
@@ -64,7 +101,7 @@ module Fdoc
       end
     end
 
-    def path(_example=nil)
+    def explicit_path(_example=nil)
       if _example && _example.respond_to?(:metadata)
         _example.metadata[:fdoc]
       elsif defined?(::RSpec) && ::RSpec.respond_to?(:current_example) # Rspec 3

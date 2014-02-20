@@ -2,27 +2,26 @@
 # endpoint. The #consume_* methods can modify the structure of the
 # in-memory endpoint, to save the results to the file system, call #persist!
 class Fdoc::EndpointScaffold < Fdoc::Endpoint
-  def initialize(endpoint_path, service=Fdoc::Service.default_service)
+  def initialize(endpoint_path, extensions={}, service=Fdoc::Service.default_service)
     if File.exist?(endpoint_path)
       super
     else
       @endpoint_path = endpoint_path
-      @schema = Fdoc::Schema.new({
-        "description" => "",
-        "responseCodes" => []
-      })
+      @schema = Fdoc::Schema.new(
+        {
+          "description" => "",
+          "responseCodes" => []
+        },
+        stringify_keys(extensions)
+      )
       @service = service
       @errors = []
+      @extensions = extensions
     end
   end
 
   def persist!
-    dirname = File.dirname(@endpoint_path)
-    FileUtils.mkdir_p(dirname) unless File.directory?(dirname)
-
-    File.open(@endpoint_path, "w") do |file|
-      YAML.dump(@schema, file)
-    end
+    schema.write_to(endpoint_path)
   end
 
   def consume_request(params, successful = true)

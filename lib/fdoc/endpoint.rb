@@ -5,15 +5,21 @@ require 'json-schema'
 # The #consume_* methods will raise exceptions if input differs from the schema
 class Fdoc::Endpoint
 
-  attr_reader :schema, :service, :endpoint_path, :current_scaffold
+  attr_reader :schema, :service, :endpoint_path, :current_scaffold, :extensions
   attr_accessor :errors
 
-  def initialize(endpoint_path, service=Fdoc::Service.default_service)
+  def initialize(endpoint_path, extensions={}, service=Fdoc::Service.default_service)
     @endpoint_path = endpoint_path
-    @schema = Fdoc::Schema.new(YAML.load_file(@endpoint_path))
+    @extensions = extensions
+    @schema = Fdoc::Schema.new(
+      YAML.load_file(@endpoint_path),
+      stringify_keys(extensions)
+    )
     @service = service
     @errors = []
-    @current_scaffold = Fdoc::EndpointScaffold.new("#{endpoint_path}.new", service)
+    @current_scaffold = Fdoc::EndpointScaffold.new(
+      "#{endpoint_path}.new", extensions, service
+    )
   end
 
   def consume!(request_params, response_params, status_code, successful=true)
@@ -61,6 +67,12 @@ class Fdoc::Endpoint
     @path ||= endpoint_path.
                 gsub(service.service_dir, "").
                 match(/\/?(.*)[-\/][A-Z]+\.fdoc/)[1]
+  end
+
+  def url_params
+    @url_params ||= schema.extensions.except(
+      "format", "controller", "action", "path_info", "method"
+    )
   end
 
   # properties

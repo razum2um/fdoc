@@ -3,8 +3,16 @@ require 'yaml'
 
 module Fdoc
   class Schema
-    def initialize(hash)
-      @hash = hash
+    KEY = 'extensions'
+    attr_reader :extensions
+
+    def initialize(json_schema_hash, extensions={})
+      @hash = json_schema_hash
+      @extensions = if extensions.blank? && @hash.has_key?(KEY)
+        @hash.delete(KEY)
+      else
+        extensions
+      end
     end
 
     def respond_to_missing?(method, include_private = false)
@@ -20,6 +28,17 @@ module Fdoc
         schema.serialized_for_diff,
         serialized_for_diff,
         context: 1).to_s(:color)
+    end
+
+    def write_to(path)
+      dirname = File.dirname(path)
+      FileUtils.mkdir_p(dirname) unless File.directory?(dirname)
+
+      File.open(path, "w") do |file|
+        YAML.dump(@hash.merge(
+          KEY => @additionals
+        ), file)
+      end
     end
 
     protected

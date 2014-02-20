@@ -34,25 +34,13 @@ class Fdoc::Service
   end
 
   def persist!
-    FileUtils.mkdir_p(service_dir) unless Dir.exist?(service_dir)
-    File.open(service_path, "w") { |file| YAML.dump(schema, file) } unless File.exists?(service_path)
+    schema.write_to(service_path) unless File.exists?(service_path)
     @opened_endpoints.each { |e| e.persist! if e.respond_to? :persist! }
   end
 
-  def self.verify!(verb, path, request_params, response_params,
+  def verify!(verb, path, extensions, request_params, response_params,
                    response_status, successful)
-    service = Fdoc::Service.new(Fdoc.service_path)
-    endpoint = service.open(verb, path)
-    endpoint.consume_request(request_params, successful)
-    endpoint.consume_response(response_params, response_status, successful)
-    service.persist!
-    service
-  end
-
-  # copied from check_response
-  def verify!(verb, path, request_params, response_params,
-                   response_status, successful)
-    endpoint = open(verb, path)
+    endpoint = open(verb, path, extensions)
     endpoint.consume!(request_params, response_params, response_status, successful)
   end
 
@@ -60,13 +48,13 @@ class Fdoc::Service
   # Returns an Endpoint described by (verb, path)
   # In scaffold_mode, it will return an EndpointScaffold an of existing file
   #   or create an empty EndpointScaffold
-  def open(verb, path, scaffold_mode = Fdoc.scaffold_mode?)
+  def open(verb, path, path_params={})
     endpoint_path = path_for(verb, path)
 
     endpoint = if File.exists?(endpoint_path)
-      Fdoc::Endpoint.new(endpoint_path, self)
+      Fdoc::Endpoint.new(endpoint_path, path_params, self)
     else
-      Fdoc::EndpointScaffold.new(endpoint_path, self)
+      Fdoc::EndpointScaffold.new(endpoint_path, path_params, self)
     end
     @opened_endpoints << endpoint
     endpoint
@@ -78,13 +66,13 @@ class Fdoc::Service
 
   def endpoints
     endpoint_paths.map do |path|
-      Fdoc::Endpoint.new(path, self)
+      Fdoc::Endpoint.new(path, {}, self)
     end
   end
 
   def path_for(verb, path)
-    flat_path   = File.join(@service_dir, "#{path}-#{verb.to_s.upcase}.fdoc")
-    nested_path = File.join(@service_dir, "#{path}/#{verb.to_s.upcase}.fdoc")
+    flat_path   = fix_endpoint_path(File.join(@service_dir, "#{path}-#{verb.to_s.upcase}.fdoc"))
+    nested_path = fix_endpoint_path(File.join(@service_dir, "#{path}/#{verb.to_s.upcase}.fdoc"))
 
     if File.exist?(flat_path)
       flat_path
@@ -93,6 +81,10 @@ class Fdoc::Service
     else # neither exists, default to flat_path
       flat_path
     end
+  end
+
+  def fix_endpoint_path(path)
+    path.gsub(/:/, '__')
   end
 
   def name
