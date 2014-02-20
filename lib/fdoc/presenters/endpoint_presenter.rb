@@ -13,7 +13,7 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
     @service_presenter = service_presenter
     @endpoint_presenter = self
     @params = [{
-      url_params: {},
+      url_params: endpoint.url_params,
       post_params: example_request.json,
     }]
     render('show')
@@ -72,7 +72,9 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
 
   def example_request
     return if endpoint.request_parameters.empty?
-    Fdoc::JsonPresenter.new(example_from_schema(endpoint.request_parameters))
+    Fdoc::JsonPresenter.new(
+      example_from_schema(endpoint.request_parameters).except(*@endpoint.url_params.keys)
+    )
   end
 
   def example_response
@@ -89,7 +91,7 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
   end
 
   def path
-    zws_ify(@endpoint.path)
+    zws_ify(@endpoint.path.gsub(/__/, ':'))
   end
 
   def verb

@@ -85,6 +85,12 @@ class Fdoc::Endpoint
     @schema["description"]
   end
 
+  def url_params
+    @schema.extensions.try(
+      :except, "path_info", "method", "format", "action", "controller"
+    ) || {}
+  end
+
   def request_parameters
     @schema["requestParameters"] ||= {}
   end
