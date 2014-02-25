@@ -81,6 +81,11 @@ class Fdoc::Endpoint
     @schema["deprecated"]
   end
 
+
+  def prefix
+    @schema["prefix"]
+  end
+
   def description
     @schema["description"]
   end

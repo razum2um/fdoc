@@ -32,7 +32,7 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
   end
 
   def prefix
-    endpoint.path.split("/").first
+    endpoint.prefix || endpoint.path.split("/").first
   end
 
   def zws_ify(str)
