@@ -51,11 +51,11 @@ module Fdoc
 
         service_presenters.each do |service_presenter|
           inside_service_presenter(service_presenter) do
-            create_file("index.html", service_presenter.to_html)
+            create_file("index.html", service_presenter.to_html, force: true)
 
             service_presenter.endpoints.each do |endpoint_prefix_group|
               endpoint_prefix_group.each do |endpoint|
-                create_file(endpoint.url, endpoint.to_html)
+                create_file(endpoint.url, endpoint.to_html, force: true)
               end
             end
           end
