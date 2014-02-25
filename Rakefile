@@ -7,7 +7,6 @@ RSpec::Core::RakeTask.new(:spec)
 
 task :c do
   require 'fdoc'
-  require 'fdoc/route'
   ARGV.clear
   Pry.start
 end
