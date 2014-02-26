@@ -33,11 +33,15 @@
                   <% endpoints.each do |endpoint| %>
                     <tr>
                       <td>
-                        <span class='label label-info'>
-                          <%= endpoint.verb %>
-                        </span>
                         <a href="<%= @service_presenter.html_directory %>/<%= endpoint.url %>">
-                          <%= endpoint.path %>
+                          <% if endpoint.endpoint.description.present? %>
+                            <%= endpoint.endpoint.description %>
+                          <% else %>
+                            <span class='label label-info'>
+                              <%= endpoint.verb %>
+                            </span>
+                            <%= endpoint.path %>
+                          <% end %>
                         </a>
                       </td>
                     </tr>
