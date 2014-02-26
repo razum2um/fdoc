@@ -38,7 +38,7 @@ Gem::Specification.new do |s|
   # build template
   s.add_development_dependency("sprockets")
   s.add_development_dependency("sass")
-  s.add_development_dependency("bootstrap-sass", "~> 2.3")
+  s.add_development_dependency("bootstrap-sass", '~> 3.1.1')
   s.add_development_dependency("jquery-rails")
   s.add_development_dependency("remotipart")
   #s.add_dependency("actionpack")
