@@ -13,7 +13,14 @@
   <% end %>
 </div>
 
-<%= raw @endpoint_presenter.description %>
+<h2><%= @endpoint_presenter.endpoint.description %></h2>
+<h3>
+  <span class="label label-info"><%= @endpoint_presenter.endpoint.verb %></span>
+  <%= @endpoint_presenter.endpoint.path %>
+</h3>
+
+
+
 
 <% if @endpoint_presenter.example_request %>
   <%= raw tag_with_anchor('h2', 'Request') %>

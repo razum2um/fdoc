@@ -23,3 +23,9 @@ body{
 #list-api-div .table{
   margin-bottom: 0px;
 }
+
+#list-api-div h6{
+  color: #999;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}

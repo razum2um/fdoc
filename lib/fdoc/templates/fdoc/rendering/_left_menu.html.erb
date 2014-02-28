@@ -16,6 +16,10 @@
                   <a href="<%= service_presenter.html_directory %>/<%= endpoint.url %>">
                     <% if endpoint.endpoint.description.present? %>
                       <%= endpoint.endpoint.description %>
+                      <h6>
+                        <span class="label label-default"><%= endpoint.verb %></span>
+                        <%= endpoint.path %>
+                      </h6>
                     <% else %>
                       <span class='label label-info'>
                         <%= endpoint.verb %>
