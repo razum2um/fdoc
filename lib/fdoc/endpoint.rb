@@ -123,6 +123,7 @@ class Fdoc::Endpoint
   def raise_errors!
     unless errors.empty?
       raise Fdoc::ValidationError.new((
+        ['Schema', "- #{endpoint_path}"] +
         errors +
         ['Diff', current_scaffold.schema.diff(schema)]
       ).join("\n"))
