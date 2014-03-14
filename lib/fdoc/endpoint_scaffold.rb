@@ -9,6 +9,7 @@ class Fdoc::EndpointScaffold < Fdoc::Endpoint
       @endpoint_path = endpoint_path
       @schema = Fdoc::Schema.new(
         {
+          "prefix" => "",
           "description" => "",
           "responseCodes" => []
         },
