@@ -20,6 +20,8 @@ module Fdoc
     end
 
     desc "convert FDOC_PATH", "Convert fdoc to HTML or Markdowns"
+    method_option :exclude, :aliases => "-e", :desc => "Select endpoints by given regexp, if NOT matching prefix"
+    method_option :select, :aliases => "-s", :desc => "Select endpoints by given regexp, matching prefix"
     method_option :output, :aliases => "-o", :desc => "Output path"
     method_option :url_base_path, :aliases => "-u", :desc => "URL base path"
     method_option :format, :aliases => "-f", :desc => "Format in html or markdown, defaults to html", :default => "html"
@@ -120,8 +122,27 @@ module Fdoc
 
       def service_presenters
         @service_presenters ||= services.map do |service|
-          Fdoc::ServicePresenter.new(service, html_options)
+          Fdoc::ServicePresenter.new(service, html_options, &filtering_block)
         end
+      end
+
+      def filtering_block
+        if options['select'].present?
+          select = /#{options['select']}/
+        end
+
+        if options['exclude'].present?
+          exclude = /#{options['exclude']}/
+        end
+
+        ->(endpoint_presenter) {
+          prefix = endpoint_presenter.endpoint.schema['prefix']
+          if prefix.present?
+            return if select.present? && !prefix.match(select)
+            return if exclude.present? && prefix.match(exclude)
+          end
+          endpoint_presenter
+        }
       end
 
       def html_options

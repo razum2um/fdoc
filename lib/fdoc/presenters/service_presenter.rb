@@ -7,13 +7,14 @@ class Fdoc::ServicePresenter < Fdoc::BasePresenter
   def_delegators :service, :name, :service_dir, :meta_service
 
 
-  def initialize(service, options = {})
+  def initialize(service, options = {}, &block)
     super(options)
     @service = service
+    @filtering_block = block
   end
 
   # TODO move to controller
-  def to_html
+  def to_html(&block)
     @service_presenter = self
     render('index')
   end
@@ -43,7 +44,11 @@ class Fdoc::ServicePresenter < Fdoc::BasePresenter
       service.endpoints.sort_by(&:endpoint_path).each do |endpoint|
         presenter = Fdoc::EndpointPresenter.new(endpoint, options)
         presenter.service_presenter = self
-        presenter
+
+        if @filtering_block
+          presenter = @filtering_block.call(presenter)
+          next if presenter.nil?
+        end
 
         current_prefix = presenter.prefix
 
@@ -63,6 +68,12 @@ class Fdoc::ServicePresenter < Fdoc::BasePresenter
       service.endpoints.sort_by(&:endpoint_path).each do |endpoint|
         presenter = Fdoc::EndpointPresenter.new(endpoint, options)
         presenter.service_presenter = self
+
+        if @filtering_block
+          presenter = @filtering_block.call(presenter)
+          next if presenter.nil?
+        end
+
         hash[presenter.prefix] << presenter
       end
       hash
