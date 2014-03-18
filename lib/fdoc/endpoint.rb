@@ -1,4 +1,5 @@
 require 'yaml'
+require 'erb'
 require 'json-schema'
 
 # Endpoints represent the schema for an API endpoint
@@ -12,7 +13,7 @@ class Fdoc::Endpoint
     @endpoint_path = endpoint_path
     @extensions = extensions
     @schema = Fdoc::Schema.new(
-      YAML.load_file(@endpoint_path),
+      load_file(@endpoint_path),
       stringify_keys(extensions)
     )
     @service = service
@@ -60,13 +61,13 @@ class Fdoc::Endpoint
   end
 
   def verb
-    @verb ||= endpoint_path.match(/([A-Z]*)\.fdoc$/)[1]
+    @verb ||= endpoint_path.match(/([A-Z]*)\.fdoc/)[1]
   end
 
   def path
     @path ||= endpoint_path.
                 gsub(service.service_dir, "").
-                match(/\/?(.*)[-\/][A-Z]+\.fdoc/)[1]
+                match(/\/?(.*)[-\/][A-Z]+\.fdoc(\.erb)?/)[1]
   end
 
   def url_params
@@ -109,6 +110,16 @@ class Fdoc::Endpoint
   end
 
   protected
+
+  def load_file(fname)
+    if fname.match(/\.erb$/)
+      context = Fdoc::ErbSchemaContext.new
+      erb = ERB.new(IO.read(fname)).result(context.get_binding)
+      YAML.load(erb)
+    else
+      YAML.load_file(fname)
+    end
+  end
 
   def validate(expected_params, given_params, prefix=nil)
     schema = set_additional_properties_false_on(expected_params.dup)

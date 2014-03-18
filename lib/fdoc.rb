@@ -35,6 +35,7 @@ module Fdoc
 end
 
 require 'fdoc/schema'
+require 'fdoc/erb_schema_context'
 require 'fdoc/service'
 require 'fdoc/meta_service'
 require 'fdoc/validation_error'

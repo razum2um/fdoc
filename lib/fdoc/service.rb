@@ -61,7 +61,7 @@ class Fdoc::Service
   end
 
   def endpoint_paths
-    Dir["#{service_dir}/**/*.fdoc"]
+    Dir["#{service_dir}/**/*.fdoc"] + Dir["#{service_dir}/**/*.fdoc.erb"]
   end
 
   def endpoints

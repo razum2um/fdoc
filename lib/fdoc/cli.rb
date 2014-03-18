@@ -20,6 +20,7 @@ module Fdoc
     end
 
     desc "convert FDOC_PATH", "Convert fdoc to HTML or Markdowns"
+    method_option :rails, :type => :boolean, :desc => "Includes Rails environment"
     method_option :exclude, :aliases => "-e", :desc => "Select endpoints by given regexp, if NOT matching prefix"
     method_option :select, :aliases => "-s", :desc => "Select endpoints by given regexp, matching prefix"
     method_option :output, :aliases => "-o", :desc => "Output path"
@@ -36,6 +37,10 @@ module Fdoc
       self.destination_root = output_path
       raise Fdoc::NotADirectory.new(output_path) unless has_valid_destination?
       say_status :inside, output_path
+
+      if options[:rails]
+        require "#{Dir.pwd}/config/environment"
+      end
 
       if options[:format] == 'markdown'
         convert_to_markdown
