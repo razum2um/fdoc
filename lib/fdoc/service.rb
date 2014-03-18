@@ -49,7 +49,7 @@ class Fdoc::Service
   # In scaffold_mode, it will return an EndpointScaffold an of existing file
   #   or create an empty EndpointScaffold
   def open(verb, path, path_params={})
-    endpoint_path = path_for(verb, path)
+    endpoint_path = Dir["#{path_for(verb, path)}*"].first
 
     endpoint = if File.exists?(endpoint_path)
       Fdoc::Endpoint.new(endpoint_path, path_params, self)
