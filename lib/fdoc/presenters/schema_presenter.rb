@@ -12,6 +12,7 @@ class Fdoc::SchemaPresenter < Fdoc::BasePresenter
     enum
     items
     properties
+    $ref
   )
 
   def initialize(schema, options)
@@ -161,7 +162,7 @@ class Fdoc::SchemaPresenter < Fdoc::BasePresenter
   end
 
   def properties_html
-    return unless properties = @schema["properties"]
+    return unless properties
 
     html = ""
 
@@ -182,5 +183,18 @@ class Fdoc::SchemaPresenter < Fdoc::BasePresenter
 
   def schema_slug(key, property)
     "#{key}-#{property.hash}"
+  end
+
+  private
+
+  def properties
+    if (props = @schema["properties"]).present?
+      props
+    elsif (ref_path = @schema["$ref"]).present?
+      ref_schema = Fdoc::RefObject.new(ref_path, options[:root_path]).schema
+      ref_schema["properties"]
+    else
+      nil
+    end
   end
 end

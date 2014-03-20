@@ -45,15 +45,19 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
     render_markdown(endpoint.description)
   end
 
+  def root_path
+    URI.parse("file://#{endpoint.endpoint_path}")
+  end
+
   def request_parameters
     Fdoc::SchemaPresenter.new(endpoint.request_parameters,
-      options.merge(:request => true)
+      options.merge(request: true, root_path: root_path)
     )
   end
 
   def response_parameters
     return if endpoint.response_parameters.empty?
-    Fdoc::SchemaPresenter.new(endpoint.response_parameters, options)
+    Fdoc::SchemaPresenter.new(endpoint.response_parameters, options.merge(root_path: root_path))
   end
 
   def response_codes
@@ -113,6 +117,9 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
       example_from_object(schema)
     elsif type.include?("array") || schema["items"]
       example_from_array(schema)
+    elsif (ref_path = schema['$ref'])
+      ref_schema = Fdoc::RefObject.new(ref_path, root_path).schema
+      example_from_object(ref_schema)
     else
       {}
     end
