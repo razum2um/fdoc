@@ -123,6 +123,7 @@ class Fdoc::Endpoint
 
   def validate(expected_params, given_params, prefix=nil)
     schema = set_additional_properties_false_on(expected_params.dup)
+    schema['id'] = "file://#{endpoint_path}"
     unless (_errors = JSON::Validator.fully_validate(schema, stringify_keys(given_params))).empty?
       self.errors << prefix
       _errors.each { |e| self.errors << "- #{e}" }
