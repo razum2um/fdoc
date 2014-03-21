@@ -7,7 +7,13 @@ class Fdoc::RefObject
   def schema
     return @ref_schema if @ref_schema
     return {} if @ref_path.nil? || @root_path.nil?
-    @ref_schema = JSON.parse(open(abs_path.to_s).read)
+    @ref_schema = JSON.parse(schema_descriptor.read)
+  end
+
+  def schema_descriptor
+    open(abs_path.to_s)
+  rescue Errno::ENOENT
+    Fdoc::JamlDescriptor.new(abs_path.to_s)
   end
 
   def abs_path
