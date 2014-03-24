@@ -36,7 +36,7 @@ module Fdoc
 
       File.open(path, "w") do |file|
         YAML.dump(@hash.merge(
-          KEY => @additionals
+          KEY => @extensions
         ), file)
       end
     end

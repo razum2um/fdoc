@@ -95,7 +95,12 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
   end
 
   def path
-    zws_ify(@endpoint.path.gsub(/__/, ':'))
+    if (@path = @endpoint.schema.extensions.try(:[], 'path_info')).present?
+      return @path
+    end
+    @path = @endpoint.path.gsub(/__/, ':')
+    @path = @path.gsub(/-#{@end}/) if @endpoint.schema.extensions.try(:[], 'suffix').present?
+    @path
   end
 
   def verb

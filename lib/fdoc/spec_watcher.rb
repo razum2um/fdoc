@@ -17,14 +17,18 @@ module Fdoc
 
           return if endpoint_path.nil? # not fdoc
 
-          if endpoint_path == true && inside_rails_controller_spec?
-            endpoint_path = path_regexp
+          if inside_rails_controller_spec?
+            if endpoint_path == true
+              endpoint_path = path_regexp
+            elsif endpoint_path.to_s.match(/^[^\/]/)
+              endpoint_path = "#{path_regexp}-#{endpoint_path.gsub(/[^[[:alnum:]]]/, '_')}"
+            end
           end
 
           if endpoint_path.blank?
             raise Fdoc::ValidationError.new(<<-MSG.gsub(/^ {14}/, '')
               cannot determine path for .fdoc, please, do it explicitly:
-                it "tests", fdoc: 'relative/path' do
+                it "tests", fdoc: 'some-fdoc-file-suffix' do
                   ...
                 end
               MSG
@@ -64,6 +68,7 @@ module Fdoc
 
     def extensions
       {
+        suffix: explicit_path(@__example).gsub(/[^[[:alnum:]]]/, '_'),
         path_info: request.env['PATH_INFO'],
         method: request.env['REQUEST_METHOD']
       }
@@ -121,7 +126,7 @@ module Fdoc
     end
 
     def inside_rails_controller_spec?
-      defined?(ActionController::Base) && described_class.is_a?(Class) && described_class.ancestors.include?(ActionController::Base)
+      defined?(ActionController::Base) && respond_to?(:controller) && controller.is_a?(ActionController::Base)
     end
 
     def real_response
@@ -148,5 +153,6 @@ end
 if defined?(RSpec)
   RSpec.configure do |config|
     config.include Fdoc::SpecWatcher, type: :controller
+    config.include Fdoc::SpecWatcher, type: :request
   end
 end
