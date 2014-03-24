@@ -67,11 +67,15 @@ module Fdoc
     private
 
     def extensions
-      {
-        suffix: explicit_path(@__example).gsub(/[^[[:alnum:]]]/, '_'),
+      @extensions = {
         path_info: request.env['PATH_INFO'],
-        method: request.env['REQUEST_METHOD']
+        method: request.env['REQUEST_METHOD'],
+        suffix: ''
       }
+      if (suffix = explicit_path(@__example)).is_a?(String)
+        @extensions[:suffix] = suffix.gsub(/[^[[:alnum:]]]/, '_')
+      end
+      @extensions
     end
 
     def path_regexp
