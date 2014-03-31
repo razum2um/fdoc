@@ -32,7 +32,6 @@ Gem::Specification.new do |s|
   s.add_dependency("kramdown")
   s.add_dependency("thor")
   s.add_dependency("diffy")
-  s.add_dependency("rack-contrib")
   s.add_dependency("sinatra")
 
   # build template
