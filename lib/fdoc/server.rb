@@ -9,7 +9,7 @@ module Fdoc
 
       Class.new(Sinatra::Base) do
 
-        if (username, password = options.values_at(:username, :password)).all?(&:present?)
+        if !Rails.env.development? && (username, password = options.values_at(:username, :password)).all?(&:present?)
           use Rack::Auth::Basic, "Protected Area" do |u, p|
             username == u && password == p
           end
