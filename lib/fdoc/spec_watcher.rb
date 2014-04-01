@@ -9,9 +9,15 @@ module Fdoc
       # _describe = self # RSpec::ExampleGroups::... # class
       [:get, :post, :put, :patch, :delete].each do |verb|
         send(:define_method, "#{verb}_with_fdoc") do |*params|
-          action, request_params = params
+          @__action, @__request_params, @__env = params
 
-          send("#{verb}_without_fdoc", *params)
+          check_rails_request_spec! if @__action.is_a?(Symbol)
+
+          if @__env
+            send("#{verb}_without_fdoc", @__action, @__request_params, @__env)
+          else
+            send("#{verb}_without_fdoc", @__action, @__request_params)
+          end
 
           endpoint_path = explicit_path(@__example)
 
@@ -36,9 +42,10 @@ module Fdoc
           end
 
           if successful = Fdoc.decide_success(response_params, real_response.status)
+            @__request_params.stringify_keys! # FIXME
             @__fdoc_service.verify!(
               verb, endpoint_path, path_params.merge(extensions),
-              parsed_request_params(request_params), response_params,
+              parsed_request_params(@__request_params), response_params,
               real_response.status, successful
             )
           end
@@ -127,6 +134,16 @@ module Fdoc
         opts.merge!(options)
         opts[:fdoc]
       end
+    end
+
+    def check_rails_request_spec!
+      return false unless @__example.metadata[:type] == :request
+      unless @__example.metadata.described_class.is_a?(Class)
+        raise 'cannot determine request url: provide proper described class like: "describe MyController do"'
+      end
+      controller_name = @__example.metadata.described_class.name.tableize.gsub(/_controllers$/, '')
+      @__action = URI.parse(url_for({ controller: controller_name, action: @__action }.merge(@__request_params))).path
+      true
     end
 
     def inside_rails_controller_spec?
