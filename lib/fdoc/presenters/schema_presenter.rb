@@ -162,6 +162,16 @@ class Fdoc::SchemaPresenter < Fdoc::BasePresenter
   end
 
   def properties_html
+    properties = if (props = @schema["properties"]).present?
+      props
+    elsif (ref_path = @schema["$ref"]).present?
+      ref = Fdoc::RefObject.new(ref_path, options[:root_path])
+      options[:root_path] = options[:root_path].merge(ref_path.sub(/#[^#]*?$/, ''))
+      ref.schema["properties"]
+    else
+      nil
+    end
+
     return unless properties
 
     html = ""
@@ -174,7 +184,8 @@ class Fdoc::SchemaPresenter < Fdoc::BasePresenter
         '<tt>%s</tt>' % key,
         schema_slug(key, property)
       )
-      html << self.class.new(property, options.merge(:nested => true)).to_html
+      sub_options = options.merge(:nested => true)
+      html << self.class.new(property, sub_options).to_html
       html << '</li>'
     end
 
@@ -183,18 +194,5 @@ class Fdoc::SchemaPresenter < Fdoc::BasePresenter
 
   def schema_slug(key, property)
     "#{key}-#{property.hash}"
-  end
-
-  private
-
-  def properties
-    if (props = @schema["properties"]).present?
-      props
-    elsif (ref_path = @schema["$ref"]).present?
-      ref_schema = Fdoc::RefObject.new(ref_path, options[:root_path]).schema
-      ref_schema["properties"]
-    else
-      nil
-    end
   end
 end

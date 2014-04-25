@@ -83,7 +83,7 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
 
   def example_response
     return if endpoint.response_parameters.empty?
-    Fdoc::JsonPresenter.new(example_from_schema(endpoint.response_parameters))
+    Fdoc::JsonPresenter.new(example_from_schema(endpoint.response_parameters, endpoint.schema))
   end
 
   def deprecated?
@@ -109,7 +109,7 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
 
   ATOMIC_TYPES = %w(string integer number boolean null)
 
-  def example_from_schema(schema)
+  def example_from_schema(schema, obj=nil)
     if schema.nil?
       return nil
     end
@@ -117,20 +117,21 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
     type = Array(schema["type"])
 
     if type.any? { |t| ATOMIC_TYPES.include?(t) }
-      schema["example"] || schema["default"] || example_from_atom(schema)
+      schema["example"] || schema["default"] || example_from_atom(schema, obj)
     elsif type.include?("object") || schema["properties"]
-      example_from_object(schema)
+      example_from_object(schema, obj)
     elsif type.include?("array") || schema["items"]
-      example_from_array(schema)
+      example_from_array(schema, obj)
     elsif (ref_path = schema['$ref'])
-      ref_schema = Fdoc::RefObject.new(ref_path, root_path).schema
-      example_from_object(ref_schema)
+      root_path = obj.respond_to?(:abs_path) ? obj.abs_path : send(:root_path)
+      ref_schema = Fdoc::RefObject.new(ref_path, root_path)
+      example_from_object(ref_schema.schema, ref_schema)
     else
       {}
     end
   end
 
-  def example_from_atom(schema)
+  def example_from_atom(schema, obj=nil)
     type = Array(schema["type"])
     hash = schema.hash
 
@@ -147,31 +148,31 @@ class Fdoc::EndpointPresenter < Fdoc::BasePresenter
     end
   end
 
-  def example_from_object(object)
+  def example_from_object(object, obj=nil)
     example = {}
     if object["properties"]
       object["properties"].each do |key, value|
-        example[key] = example_from_schema(value)
+        example[key] = example_from_schema(value, obj)
       end
     end
     example
   end
 
-  def example_from_array(array)
+  def example_from_array(array, obj=nil)
     if array["items"].kind_of? Array
       example = []
       array["items"].each do |item|
-        example << example_from_schema(item)
+        example << example_from_schema(item, obj)
       end
       example
     elsif (array["items"] || {})["type"].kind_of? Array
       example = []
       array["items"]["type"].each do |item|
-        example << example_from_schema(item)
+        example << example_from_schema(item, obj)
       end
       example
     else
-      [ example_from_schema(array["items"]) ]
+      [ example_from_schema(array["items"], obj) ]
     end
   end
 end
