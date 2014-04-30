@@ -10,6 +10,7 @@ module Fdoc
       [:get, :post, :put, :patch, :delete].each do |verb|
         send(:define_method, "#{verb}_with_fdoc") do |*params|
           @__action, @__request_params, @__env = params
+          @__request_params ||= {}
 
           check_rails_request_spec! if @__action.is_a?(Symbol)
 
